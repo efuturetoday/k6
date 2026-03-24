@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"iter"
 	"net/http"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -272,6 +273,7 @@ type Page struct {
 	extraHTTPHeaders map[string]string
 
 	backgroundPage bool
+	screencast     *Screencast
 
 	eventCh            chan Event
 	eventHandlers      map[PageEventName][]pageEventHandlerRecord
@@ -363,6 +365,19 @@ func NewPage(
 
 	if err := bctx.applyAllInitScripts(&p); err != nil {
 		return nil, fmt.Errorf("internal error while applying init scripts to page: %w", err)
+	}
+
+	if dir := bctx.opts.RecordVideoDir(); dir != "" {
+		outputPath := filepath.Join(dir, string(tid)+".mp4")
+		var videoSize *RecordVideoSize
+		if rv := bctx.opts.RecordVideo; rv != nil {
+			videoSize = rv.Size
+		}
+		p.screencast = NewScreencast(s, outputPath, videoSize, logger)
+		if err := p.screencast.Start(p.ctx); err != nil {
+			logger.Warnf("Page:NewPage", "failed to start screencast: %v", err)
+			p.screencast = nil
+		}
 	}
 
 	return &p, nil
@@ -993,6 +1008,10 @@ func (p *Page) Close() error {
 		_, err := p.MainFrame().EvaluateWithContext(teardownTimeoutCtx, v)
 		if err != nil {
 			p.logger.Warnf("Page:Close", "failed to hide page: %v", err)
+		}
+
+		if p.screencast != nil {
+			p.screencast.Stop()
 		}
 
 		var closeErrs []error

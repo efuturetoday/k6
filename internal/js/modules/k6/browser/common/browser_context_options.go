@@ -23,8 +23,30 @@ type BrowserContextOptions struct {
 	Screen            Screen            `js:"screen"`
 	TimezoneID        string            `js:"timezoneID"`
 	UserAgent         string            `js:"userAgent"`
-	VideosPath        string            `js:"videosPath"`
-	Viewport          Viewport          `js:"viewport"`
+	RecordVideo       *RecordVideoOptions `js:"recordVideo"`
+	VideosPath        string              `js:"videosPath"`
+	Viewport          Viewport            `js:"viewport"`
+}
+
+// RecordVideoDir returns the effective video recording directory. It first
+// checks RecordVideo, then falls back to VideosPath for backwards compatibility.
+func (o *BrowserContextOptions) RecordVideoDir() string {
+	if o.RecordVideo != nil && o.RecordVideo.Dir != "" {
+		return o.RecordVideo.Dir
+	}
+	return o.VideosPath
+}
+
+// RecordVideoOptions holds options for video recording.
+type RecordVideoOptions struct {
+	Dir  string          `js:"dir"`
+	Size *RecordVideoSize `js:"size"`
+}
+
+// RecordVideoSize holds the dimensions for recorded video frames.
+type RecordVideoSize struct {
+	Width  int64 `js:"width"`
+	Height int64 `js:"height"`
 }
 
 // DefaultBrowserContextOptions returns the default browser context options.
