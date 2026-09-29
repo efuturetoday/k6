@@ -87,6 +87,7 @@ func (m *RootModule) NewModuleInstance(vu k6modules.VU) k6modules.Instance {
 					m.remoteRegistry,
 					m.PidRegistry,
 					m.tracesMetadata,
+					m.filePersister,
 				),
 				taskQueueRegistry: newTaskQueueRegistry(vu),
 				filePersister:     m.filePersister,

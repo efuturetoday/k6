@@ -199,6 +199,7 @@ func newBrowserRegistry(
 	remote *remoteRegistry,
 	pids *pidRegistry,
 	tracesMetadata map[string]string,
+	fp filePersister,
 ) *browserRegistry {
 	bt := chromium.NewBrowserType(vu)
 	builder := func(ctx, vuCtx context.Context) (*common.Browser, error) {
@@ -220,6 +221,10 @@ func newBrowserRegistry(
 				return nil, err //nolint:wrapcheck
 			}
 			pids.registerPid(pid)
+		}
+
+		if fp != nil {
+			b.SetFilePersister(fp)
 		}
 
 		return b, nil

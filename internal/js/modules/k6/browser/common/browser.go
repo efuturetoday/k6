@@ -74,6 +74,8 @@ type Browser struct {
 	// runOnClose is a list of functions to run when the browser is closed.
 	runOnClose []func() error
 
+	filePersister ScreenshotPersister
+
 	logger *log.Logger
 }
 
@@ -774,4 +776,11 @@ func (b *Browser) fetchVersion() (browserVersion, error) {
 // WsURL returns the Websocket URL that the browser is listening on for CDP clients.
 func (b *Browser) WsURL() string {
 	return b.browserProc.WsURL()
+}
+
+// SetFilePersister sets the file persister used for saving screencast videos
+// and other artifacts. It is injected from the module layer after browser
+// creation.
+func (b *Browser) SetFilePersister(sp ScreenshotPersister) {
+	b.filePersister = sp
 }

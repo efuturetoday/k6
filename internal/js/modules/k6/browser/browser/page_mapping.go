@@ -723,6 +723,13 @@ func mapPage(vu moduleVU, p *common.Page) mapping { //nolint:gocognit,cyclop
 				return mapPageEvent(vu, rpe)
 			}), nil
 		},
+		"video": func() *sobek.Object {
+			v := p.Video()
+			if v == nil {
+				return nil
+			}
+			return rt.ToValue(mapVideo(vu, v)).ToObject(rt)
+		},
 		"workers": func() *sobek.Object {
 			workers := p.Workers()
 			mws := make([]mapping, 0, len(workers))

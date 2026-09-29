@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"iter"
 	"net/http"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -269,6 +270,7 @@ type Page struct {
 	extraHTTPHeaders map[string]string
 
 	backgroundPage bool
+	video          *Video
 
 	eventCh            chan Event
 	eventHandlers      map[PageEventName][]pageEventHandlerRecord
@@ -360,6 +362,15 @@ func NewPage(
 
 	if err := bctx.applyAllInitScripts(&p); err != nil {
 		return nil, fmt.Errorf("internal error while applying init scripts to page: %w", err)
+	}
+
+	if rv := bctx.opts.RecordVideo; rv != nil && rv.Dir != "" && bctx.browser.filePersister != nil {
+		outputPath := filepath.Join(rv.Dir, string(tid)+".mp4")
+		p.video = NewVideo(s, outputPath, rv.Size, bctx.browser.filePersister, logger)
+		if err := p.video.Start(p.ctx); err != nil {
+			logger.Warnf("Page:NewPage", "failed to start screencast: %v", err)
+			p.video = nil
+		}
 	}
 
 	return &p, nil
@@ -982,6 +993,10 @@ func (p *Page) Close() error {
 			p.logger.Warnf("Page:Close", "failed to hide page: %v", err)
 		}
 
+		if p.video != nil {
+			p.video.Stop()
+		}
+
 		var closeErrs []error
 
 		add := runtime.RemoveBinding(webVitalBinding)
@@ -1028,6 +1043,12 @@ func (p *Page) Content() (string, error) {
 // Context closes the page.
 func (p *Page) Context() *BrowserContext {
 	return p.browserCtx
+}
+
+// Video returns the Video object associated with this page, or nil if
+// video recording was not enabled for the browser context.
+func (p *Page) Video() *Video {
+	return p.video
 }
 
 // Dblclick double clicks an element matching provided selector.

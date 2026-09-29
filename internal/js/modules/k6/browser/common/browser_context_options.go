@@ -22,9 +22,23 @@ type BrowserContextOptions struct {
 	ReducedMotion     ReducedMotion     `js:"reducedMotion"`
 	Screen            Screen            `js:"screen"`
 	TimezoneID        string            `js:"timezoneID"`
-	UserAgent         string            `js:"userAgent"`
-	VideosPath        string            `js:"videosPath"`
-	Viewport          Viewport          `js:"viewport"`
+	UserAgent         string              `js:"userAgent"`
+	RecordVideo       *RecordVideoOptions `js:"recordVideo"`
+	Viewport          Viewport            `js:"viewport"`
+}
+
+// RecordVideoOptions holds options for video recording, matching the Playwright
+// recordVideo API. Dir is the directory where videos are saved. Size optionally
+// constrains the recorded video dimensions.
+type RecordVideoOptions struct {
+	Dir  string           `js:"dir"`
+	Size *RecordVideoSize `js:"size"`
+}
+
+// RecordVideoSize holds the dimensions for recorded video frames.
+type RecordVideoSize struct {
+	Width  int64 `js:"width"`
+	Height int64 `js:"height"`
 }
 
 // DefaultBrowserContextOptions returns the default browser context options.
